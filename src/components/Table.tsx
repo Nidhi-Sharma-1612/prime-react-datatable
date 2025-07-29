@@ -44,7 +44,7 @@ function Table() {
 
   const handleOverlayAction = async (
     count: number,
-    selectedItems: Artwork[],
+    _selectedItems: Artwork[],
     rowsPerPage: number,
     setSelectedItems: React.Dispatch<React.SetStateAction<Artwork[]>>
   ) => {
