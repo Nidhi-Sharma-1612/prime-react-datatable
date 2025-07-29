@@ -1,69 +1,58 @@
-# React + TypeScript + Vite
+# PrimeReact DataTable
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project showcases the use of the **PrimeReact DataTable** component with server-side pagination, row selection overlay, and integration with a mock API.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Server-side pagination with total record count
+- Row selection with overlay input (select N rows across pages)
+- Loading indicator during data fetch
+- Responsive UI using TailwindCSS and Lucide icons
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React + Vite** (Fast build tool)
+- **PrimeReact** for DataTable components
+- **Lucide-react** for icons
+- **TailwindCSS** for styling
+- **Fetch API** for data requests
+- **TypeScript**
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Setup Instructions
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+1. **Clone the repository:**
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+   ```bash
+   git clone https://github.com/Nidhi-Sharma-1612/prime-react-datatable.git
+   cd prime-react-datatable
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Install dependencies:**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+   ```bash
+   npm install
+   ```
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. **Start the development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in Browser:**  
+   Visit `http://localhost:5173` to see the app in action.
+
+## Project Structure
+
+- `Table.tsx`: Main component rendering the DataTable
+- `RowSelectorOverlay.tsx`: Input overlay for selecting rows
+- `utils/artworkApi.ts`: API utility for fetching data
+- `types.ts`: Shared type definitions
+
+## Screenshots
+
+![PrimeReact DataTable](image.png)
+![Row selector overlay with input in use](image-1.png)
+![Selected Rows](image-2.png)
+![Loading indicator](image-3.png)
+![Server Side Data fetching](image-4.png)
