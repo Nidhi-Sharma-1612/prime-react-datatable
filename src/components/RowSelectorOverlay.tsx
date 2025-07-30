@@ -9,6 +9,7 @@ const RowSelectorOverlay = forwardRef<OverlayPanel, OverlayPanelProps>(
   ({ onSubmit, selectedItems, rowsPerPage, setSelectedItems }, ref) => {
     const [inputValue, setInputValue] = useState("");
     const [inputError, setInputError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const isInputValid = inputValue.trim() !== "" && Number(inputValue) >= 1;
 
@@ -23,15 +24,22 @@ const RowSelectorOverlay = forwardRef<OverlayPanel, OverlayPanelProps>(
       }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
       const count = Number(inputValue);
       if (!isInputValid) return;
 
-      onSubmit(count, selectedItems, rowsPerPage, setSelectedItems);
-      setInputValue("");
+      setIsLoading(true);
+      try {
+        await onSubmit(count, selectedItems, rowsPerPage, setSelectedItems);
+        setInputValue("");
 
-      if (ref && typeof ref !== "function") {
-        ref.current?.hide();
+        if (ref && typeof ref !== "function") {
+          ref.current?.hide();
+        }
+      } catch (err) {
+        console.error("Bulk select error:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -41,6 +49,7 @@ const RowSelectorOverlay = forwardRef<OverlayPanel, OverlayPanelProps>(
         onHide={() => {
           setInputValue("");
           setInputError("");
+          setIsLoading(false);
         }}
         style={{ width: "100%", maxWidth: "260px" }}
         className="w-[90vw] sm:w-64 md:w-72"
@@ -58,14 +67,17 @@ const RowSelectorOverlay = forwardRef<OverlayPanel, OverlayPanelProps>(
           <div className="flex justify-end">
             <Button
               label={
-                inputValue && Number(inputValue) >= 1
+                isLoading
+                  ? "Selecting..."
+                  : inputValue && Number(inputValue) >= 1
                   ? `Select ${inputValue} row${
                       Number(inputValue) > 1 ? "s" : ""
                     }`
                   : "Submit"
               }
               onClick={handleSubmit}
-              disabled={!isInputValid}
+              disabled={!isInputValid || isLoading}
+              icon={isLoading ? "pi pi-spin pi-spinner" : undefined}
             />
           </div>
         </div>

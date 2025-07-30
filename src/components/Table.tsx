@@ -17,19 +17,35 @@ function Table() {
   const [rows, setRows] = useState(12);
   const [selectedItems, setSelectedItems] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const dataCacheRef = useRef<Map<number, Artwork[]>>(new Map());
   const rowSelectorRef = useRef<RowSelectorOverlayRef>(null);
 
-  const fetchArtworks = async (page: number, limit: number) => {
+  useEffect(() => {
+    const initialPage = first / rows + 1;
+    fetchAndCachePage(initialPage, rows);
+  }, []);
+
+  const fetchAndCachePage = async (page: number, limit: number) => {
+    const cache = dataCacheRef.current;
+
+    if (cache.has(page)) {
+      setData(cache.get(page)!);
+      return;
+    }
+
     setLoading(true);
     try {
       const { artworks, totalRecords } = await fetchArtworksFromApi(
         page,
         limit
       );
+
       setData(artworks);
       setTotalRecords(totalRecords);
+      cache.set(page, artworks);
     } catch (err) {
-      console.error("Failed to fetch artworks:", err);
+      console.error("Fetch failed:", err);
     } finally {
       setLoading(false);
     }
@@ -39,28 +55,49 @@ function Table() {
     const newPage = event.first / event.rows + 1;
     setFirst(event.first);
     setRows(event.rows);
-    fetchArtworks(newPage, event.rows);
+    fetchAndCachePage(newPage, event.rows);
   };
 
   const handleOverlayAction = async (
     count: number,
     _selectedItems: Artwork[],
     rowsPerPage: number,
-    setSelectedItems: React.Dispatch<React.SetStateAction<Artwork[]>>
+    setSelectedItems: React.Dispatch<React.SetStateAction<Artwork[]>>,
+    dataCache: Map<number, Artwork[]>,
+    fetchArtworksFromApi: (
+      page: number,
+      limit: number
+    ) => Promise<{ artworks: Artwork[] }>
   ) => {
     const pagesNeeded = Math.ceil(count / rowsPerPage);
-    let collected: Artwork[] = [];
+    const pagesToFetch: number[] = [];
 
     for (let page = 1; page <= pagesNeeded; page++) {
-      const { artworks } = await fetchArtworksFromApi(page, rowsPerPage);
-      collected = [...collected, ...artworks];
-      if (collected.length >= count) break;
+      if (!dataCache.has(page)) {
+        pagesToFetch.push(page);
+      }
     }
 
-    const newSelection = collected.slice(0, count);
+    const fetchedResults = await Promise.all(
+      pagesToFetch.map((page) => fetchArtworksFromApi(page, rowsPerPage))
+    );
 
+    fetchedResults.forEach((res, i) => {
+      const page = pagesToFetch[i];
+      dataCache.set(page, res.artworks);
+    });
+
+    const allArtworks: Artwork[] = [];
+    for (let page = 1; page <= pagesNeeded; page++) {
+      const artworks = dataCache.get(page);
+      if (artworks) {
+        allArtworks.push(...artworks);
+      }
+    }
+
+    const sliced = allArtworks.slice(0, count);
     const uniqueById = Array.from(
-      new Map(newSelection.map((item) => [item.id, item])).values()
+      new Map(sliced.map((item) => [item.id, item])).values()
     );
 
     setSelectedItems(uniqueById);
@@ -79,11 +116,6 @@ function Table() {
 
     setSelectedItems(uniqueSelection);
   };
-
-  useEffect(() => {
-    const initialPage = first / rows + 1;
-    fetchArtworks(initialPage, rows);
-  }, []);
 
   return (
     <>
@@ -137,6 +169,7 @@ function Table() {
             <Column field="date_end" header="Date End" />
           </DataTable>
         </div>
+
         {loading && (
           <div className="fixed inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]">
             <div className="flex items-center gap-2 text-gray-700 dark:text-gray-100 text-sm">
@@ -148,7 +181,13 @@ function Table() {
 
         <RowSelectorOverlay
           ref={rowSelectorRef}
-          onSubmit={handleOverlayAction}
+          onSubmit={(...args) =>
+            handleOverlayAction(
+              ...args,
+              dataCacheRef.current,
+              fetchArtworksFromApi
+            )
+          }
           selectedItems={selectedItems}
           setSelectedItems={setSelectedItems}
           rowsPerPage={rows}
